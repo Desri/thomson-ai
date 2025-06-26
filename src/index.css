@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: inherit;
+}
+
+body {
+  margin: 0;
+  background-color: #f8f9fa;
+}
+
+input:-webkit-autofill {
+  background-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #000 !important;
+}
+
+.Toastify__toast {
+  padding: 0px;
+}
+
+.modal {
+  width: 90%;
+  max-width: 900px;
+  transform: translate(-50%, -50%);
+}
+
+/* width */
+.modal ::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+.modal ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+.modal ::-webkit-scrollbar-thumb {
+  background: #888888;
+  border-radius: 30px;
+}
+
+/* Handle on hover */
+.modal ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.summary-content {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
