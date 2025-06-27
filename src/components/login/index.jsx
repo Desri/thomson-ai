@@ -4,6 +4,7 @@ import { loginSchema } from '../../schemas/login';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postLogin } from '../../services/auth';
 import { showErrorToast } from '../../utils/toast';
+import { useState } from 'react';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -16,13 +17,17 @@ const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   });
 
+  const [loading, setLoading] = useState(false);
+
   const onSubmit = async (data) => {
+    setLoading(true)
     const payload = {
       email: data.email,
       password: data.password
     };
     postLogin({ payload })
     .then((res) => {
+      setLoading(false)
       if(res.success) {
         if (res.data.role === 'admin' || res.data.role === 'nurse') {
           navigate('/admin');
@@ -32,6 +37,7 @@ const LoginForm = () => {
       }
     })
     .catch((err) => {
+      setLoading(false)
       showErrorToast(err.message);
     })
   };
@@ -67,7 +73,16 @@ const LoginForm = () => {
           />
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
         </div>
-        <button type="submit" className="bg-[#2a6eb8] cursor-pointer w-full p-3 font-medium text-white rounded-md" id="login-btn">Sign In</button>
+        <button
+          type="submit"
+          className={`${
+            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2a6eb8] cursor-pointer'
+          } w-full p-3 font-medium text-white rounded-md`}
+          id="login-btn"
+          disabled={loading}
+        >
+          {loading ? 'Loading...' : 'Sign In'}
+        </button>
         <div className="loading" id="loading">
           <div className="loading-dots">
             <span></span>

@@ -20,7 +20,7 @@ const Header = () => {
       </div>
       <div className="flex items-center space-x-4 text-sm">
         <span className="font-semibold text-black">
-          {user?.email}
+          {user?.username}
         </span>
         <span className="uppercase bg-[#2a6eb8] text-white text-xs font-semibold px-3 py-1 rounded-full select-none">
           {user?.role}

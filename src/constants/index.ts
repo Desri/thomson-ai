@@ -16,6 +16,7 @@ export const api = {
     data: "medical-data"
   },
   logs: {
-    list: "logs"
+    list: "logs",
+    types: "logs/action-types"
   }
 };

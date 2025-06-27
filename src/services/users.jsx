@@ -28,3 +28,64 @@ export const getUsers = async () => {
     throw new Error(error);
   }
 };
+
+
+// export const postGenerate = async ({ payload }) => {
+//   const token = Cookies.get("accessToken");
+//   try {
+//     const response = await fetch(`${BASE_URL}/${api.generate.post}/`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(payload)
+//     });
+//     const data = await response.json();
+
+//     if (response.status === 401) {
+//       const error = new Error('Unauthorized');
+//       error.status = 401;
+//       throw error;
+//     }
+
+//     if (!response.ok) {
+//       const message = data?.message;
+//       throw new Error(message);
+//     }
+//     return data;
+//   } catch (error) {
+//     console.error('Fetch failed:', error);
+//     throw error;
+//   }
+// };
+
+
+export const deletetUser = async (username) => {
+  const token = Cookies.get("accessToken");
+  try {
+    const response = await fetch(`${BASE_URL}/${api.auth.user}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(username)
+    });
+    const data = await response.json();
+
+    if (response.status === 401) {
+      const error = new Error('Unauthorized');
+      error.status = 401;
+      throw error;
+    }
+
+    if (!response.ok) {
+      const message = data?.message;
+      throw new Error(message);
+    }
+    return data;
+  } catch (error) {
+    throw new Error(error);
+  }
+};

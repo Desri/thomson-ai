@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { getLogs } from "../../services/logs";
+import { getActionType, getLogs } from "../../services/logs";
 import { formatDateTime } from "../../utils/dateTime";
 import { useAuthStore } from "../../store/profileStore";
 
@@ -9,9 +9,11 @@ const TableActivityComponent = () => {
 
   const { logout } = useAuthStore();
   const [dataLogs, setDataLogs] = useState([]);
+  const [dataActionType, setDataActionType] = useState([]);
 
   useEffect(() => {
     fetchLogs();
+    fetchActionType();
   }, []);
 
   const fetchLogs = () => {
@@ -19,6 +21,22 @@ const TableActivityComponent = () => {
     .then((res) => {
       if (res.success) {
         setDataLogs(res.data.logs)
+      }
+    })
+    .catch((err) => {
+      if (err.status === 401) {
+        logout();
+        navigate('/auth/login');
+      }
+    });
+  };
+
+  const fetchActionType = () => {
+    getActionType()
+    .then((res) => {
+      if (res.success) {
+        console.log('dsdds', res.data)
+        setDataActionType(res.data)
       }
     })
     .catch((err) => {
@@ -51,20 +69,32 @@ const TableActivityComponent = () => {
       <form className="flex flex-wrap gap-6 mb-6 text-xs text-gray-700">
         <div className="flex flex-col">
           <label htmlFor="summaryType" className="mb-1 select-none font-semibold text-[#6c757d]">Action Type</label>
-          <select id="summaryType" className="border border-gray-300 rounded px-3 py-2 w-44 focus:outline-none focus:ring-1 focus:ring-blue-600">
+          <select id="summaryType" className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-1 focus:ring-blue-600">
             <option>All Action</option>
-            <option>Search TA Number</option>
+            {dataActionType.map((action, index) => {
+              const label = action
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+
+              return (
+                <option key={index} value={action}>
+                  {label}
+                </option>
+              );
+            })}
+            {/* <option>Search TA Number</option>
             <option>Generate Clinical Summary</option>
             <option>Regenerate Clinical Summary</option>
             <option>Generate Discharge Summary</option>
             <option>Regenerate Discharge Summary</option>
             <option>Copy Clinical Summary</option>
-            <option>Copy Discharge Summary</option>
+            <option>Copy Discharge Summary</option> */}
           </select>
         </div>
         <div className="flex flex-col">
           <label htmlFor="username" className="mb-1 select-none font-semibold text-[#6c757d]">Username</label>
-          <select id="username" className="border border-gray-300 rounded px-3 py-2 w-44 focus:outline-none focus:ring-1 focus:ring-blue-600">
+          <select id="username" className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-1 focus:ring-blue-600">
             <option>All Users</option>
             <option>doctor@thomson.com</option>
             <option>nurse@thomson.com</option>
@@ -90,7 +120,7 @@ const TableActivityComponent = () => {
         <thead className="bg-[#f5f9ff] text-[#2a6eb8]">
           <tr>
             <th className="py-3 px-6 border-b font-semibold text-base border-gray-200">Timestamp</th>
-            <th className="py-3 px-6 border-b font-semibold text-base border-gray-200">User Email</th>
+            <th className="py-3 px-6 border-b font-semibold text-base border-gray-200">Username</th>
             <th className="py-3 px-6 border-b font-semibold text-base border-gray-200">Action Type</th>
             <th className="py-3 px-6 border-b font-semibold text-base border-gray-200">TA Number</th>
           </tr>
@@ -106,7 +136,7 @@ const TableActivityComponent = () => {
             dataLogs.map((item) => (
               <tr key={item.id}>
                 <td className="py-3 px-6 text-black">{formatDateTime(item.timestamp)}</td>
-                <td className="py-3 px-6 text-black">{item.user_email}</td>
+                <td className="py-3 px-6 text-black">{item.user_username}</td>
                 <td className="py-3 px-6">
                   <span
                     className={`inline-block text-xs font-semibold px-3 py-1 rounded-full select-none ${
@@ -118,7 +148,9 @@ const TableActivityComponent = () => {
                     {item.action_type}
                   </span>
                 </td>
-                <td className="py-3 px-6 text-black">{item.ta_number}</td>
+                <td className="py-3 px-6 text-black">
+                  {item.ta_number ? item.ta_number : '-'}
+                </td>
               </tr>
             ))
           )}

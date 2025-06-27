@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import Modal from '@mui/material/Modal';
-import { getUsers } from "../../services/users";
+import { deletetUser, getUsers } from "../../services/users";
 import { formatDateTime } from "../../utils/dateTime";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from "../../schemas/register";
@@ -16,6 +16,8 @@ const TableUserManagementComponent = () => {
   const [open, setOpen] = useState(false);
   const handleClose = () => setOpen(false);
   const [dataUser, setDataUser] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [detailUser, setDetailUser] = useState();
 
   const {
     register,
@@ -47,6 +49,22 @@ const TableUserManagementComponent = () => {
     setOpen(prev => !prev)
   }
 
+  const handleDelete = async (index) => {
+    const selectedData = dataUser[index];
+    setDetailUser(selectedData)
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete user "${selectedData.name}"? This action cannot be undone.`
+    );
+
+    if (confirmDelete) {
+      console.log(`User "${selectedData.name}" akan dihapus.`);
+      const username = selectedData.username
+      deletetUser({ username })
+    } else {
+      console.log(`Penghapusan user "${selectedData.name}" dibatalkan.`);
+    }
+  };
+
   const handleSaveAsXLSX = () => {
     const worksheet = XLSX.utils.json_to_sheet(dataUser);
     const workbook = XLSX.utils.book_new();
@@ -65,14 +83,17 @@ const TableUserManagementComponent = () => {
   };
 
   const onSubmit = async (data) => {
+    setLoading(true)
     postRegister({ data })
     .then((res) => {
+      setLoading(false)
       if(res.success) {
         reset();
         console.log('Check Success', res)
       }
     })
     .catch((err) => {
+      setLoading(false)
       showErrorToast(err.message);
     })
   };
@@ -103,12 +124,12 @@ const TableUserManagementComponent = () => {
             id="taNumber"
             type="text"
             placeholder="Search by username, name, or email"
-            className="border border-gray-300 rounded px-3 py-2 w-44 focus:outline-none focus:ring-1 focus:ring-blue-600"
+            className="border border-gray-300 rounded px-3 py-2 w-56 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
         </div>
         <div className="flex flex-col">
           <label htmlFor="summaryType" className="mb-1 select-none font-semibold text-[#6c757d]">Role</label>
-          <select id="summaryType" className="border border-gray-300 rounded px-3 py-2 w-44 focus:outline-none focus:ring-1 focus:ring-blue-600">
+          <select id="summaryType" className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-1 focus:ring-blue-600">
             <option>All Roles</option>
             <option>Doctor</option>
             <option>Nurse</option>
@@ -131,7 +152,7 @@ const TableUserManagementComponent = () => {
         </thead>
         <tbody className="divide-y divide-gray-200">
           {dataUser.map((item, index) => (
-            <tr key={item.id}>
+            <tr key={index}>
               <td className="py-3 px-6 text-black">{index+1}</td>
               <td className="py-3 px-6 text-black">
                 {item.name}
@@ -143,13 +164,22 @@ const TableUserManagementComponent = () => {
               <td className="py-3 px-6 text-black">
                 {item.mcr_number}
               </td>
+              <td className="py-3 px-6 text-black">
+                {formatDateTime(item.created_at)}
+              </td>
               <td className="py-3 px-6">
                 <button
-                  className="bg-[#2a6eb8] cursor-pointer text-white text-xs font-bold px-3 py-1 rounded focus:outline-none hover:bg-[#4d8fd4]"
+                  className="bg-gray-400 cursor-not-allowed mr-2 text-white text-xs font-bold px-3 py-1 rounded focus:outline-none hover:bg-[#4d8fd4]"
                   type="button"
-                  onClick={() => handleOpen(index)}
                 >
-                  View Details
+                  Edit
+                </button>
+                <button
+                  className="bg-[#dc3545] cursor-pointer text-white text-xs font-bold px-3 py-1 rounded focus:outline-none hover:bg-[#4d8fd4]"
+                  type="button"
+                  onClick={() => handleDelete(index)}
+                >
+                  Delete
                 </button>
               </td>
             </tr>
@@ -210,6 +240,16 @@ const TableUserManagementComponent = () => {
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                   </div>
                   <div className="flex flex-col">
+                    <label htmlFor="username" className="mb-1 select-none font-semibold text-[#6c757d]">Username</label>
+                    <input
+                      id="username"
+                      type="text"
+                      {...register('username')}
+                      className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    />
+                    {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
+                  </div>
+                  <div className="flex flex-col">
                     <label htmlFor="email" className="mb-1 select-none font-semibold text-[#6c757d]">Email</label>
                     <input
                       id="email"
@@ -239,26 +279,31 @@ const TableUserManagementComponent = () => {
                     </select>
                     {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>}
                   </div>
-                </div>
-                <div className="flex flex-col mb-10">
-                  <label htmlFor="mcr" className="mb-1 select-none font-semibold text-[#6c757d]">MCR Number</label>
-                  <input
-                    id="mcr"
-                    type="text"
-                    {...register('mcr_number')}
-                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-blue-600"
-                  />
-                  {errors.mcr_number && <p className="text-red-500 text-xs mt-1">{errors.mcr_number.message}</p>}
+
+                  <div className="flex flex-col">
+                    <label htmlFor="mcr" className="mb-1 select-none font-semibold text-[#6c757d]">MCR Number</label>
+                    <input
+                      id="mcr"
+                      type="text"
+                      {...register('mcr_number')}
+                      className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    />
+                    {errors.mcr_number && <p className="text-red-500 text-xs mt-1">{errors.mcr_number.message}</p>}
+                  </div>
+
                 </div>
               </div>
             </div>
             <div className="border-t border-[#dddddd] border-solid text-white p-4">
               <div className="flex justify-end gap-x-3 items-center">
                 <button
-                  className="bg-[#2a6eb8] cursor-pointer text-white text-xs font-bold px-3 py-2 rounded focus:outline-none hover:bg-[#4d8fd4]"
+                  className={`${
+                    loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2a6eb8] cursor-pointer'
+                  } text-xs font-bold px-3 py-2 rounded focus:outline-none hover:bg-[#4d8fd4]`}
                   type="submit"
+                  disabled={loading}
                 >
-                  Add User
+                  {loading ? 'Loading...' : 'Add User'}
                 </button>
               
                 <button
